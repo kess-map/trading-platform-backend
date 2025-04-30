@@ -1,4 +1,4 @@
-import BuyOrder from "../models/BuyOrderModel.js";
+import BuyOrder from "../models/buyOrderModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import { success } from "../utils/response.js";
 
