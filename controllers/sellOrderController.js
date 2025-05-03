@@ -21,7 +21,7 @@ export const createSellOrder = catchAsync(async(req, res)=>{
 export const getPendingSellOrders = catchAsync(async(req, res)=>{
     const userId = req.userId
 
-    const sellOrders = await SellOrder.find({user: userId}).populate('user', 'phoneNumber').sort({createdAt: -1})
+    const sellOrders = await SellOrder.find({user: userId, status: 'pending'}).populate('user', 'fullName phoneNumber').sort({createdAt: -1})
 
     success(res, sellOrders)
 })
