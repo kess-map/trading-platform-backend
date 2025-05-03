@@ -1,4 +1,4 @@
-import BuyOrder from '../models/BuyOrderModel.js';
+import BuyOrder from '../models/buyOrderModel.js';
 import SellOrder from '../models/sellOrderModel.js';
 import MatchedOrder from '../models/matchedOrderModel.js';
 import Investment from '../models/investmentModel.js';
