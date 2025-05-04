@@ -14,18 +14,18 @@ export const createInvestment = catchAsync(async (req, res) => {
       return res.status(400).json({ message: 'Insufficient available balance' });
     }
  
-    await debitAvailableBalance(user, amount);
-    await creditStakedBalance(user, amount);
+    await debitAvailableBalance(user, Number(amount));
+    await creditStakedBalance(user, Number(amount));
  
     const now = new Date();
-    const investmentEndsAt = new Date(now.getTime() + planDurationDays * 24 * 60 * 60 * 1000);
+    const investmentEndsAt = new Date(now.getTime() + Number(planDurationDays) * 24 * 60 * 60 * 1000);
     const countdownEndsAt = new Date(now.getTime() + 120 * 24 * 60 * 60 * 1000);
  
     const newInvestment = new Investment({
       user: user._id,
-      amount,
-      planDurationDays,
-      roiPercentage,
+      amount: Number(amount),
+      planDurationDays: Number(planDurationDays),
+      roiPercentage: Number(roiPercentage),
       investmentCreatedAt: now,
       investmentEndsAt,
       countdownEndsAt,
@@ -71,7 +71,7 @@ export const reinvestInvestment = catchAsync(async (req, res) => {
 export const creditInvestmentReturns = catchAsync(async (req, res) => {
     const now = new Date();
 
-    const investments = await Investments.find({
+    const investments = await Investment.find({
       investmentEndsAt: { $lte: now },
       roiCredited: false
     });
@@ -173,10 +173,22 @@ export const getUserInvestments = catchAsync(async (req, res) => {
       roiCredited: true
     }).sort({ investmentCreatedAt: -1 });
 
+    const allInvestments = [...pendingInvestments, ...completedInvestments];
+
+    const totalInvested = allInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+    const totalExpectedReturn = allInvestments.reduce((sum, inv) => {
+      const roiPercent = inv.roiPercentage || 0;
+      return sum + (inv.amount * roiPercent / 100);
+    }, 0);
+
     return res.status(200).json({
       success: true,
       pending: pendingInvestments,
-      completed: completedInvestments
+      completed: completedInvestments,
+      summary: {
+        totalInvested,
+        totalExpectedReturn
+      }
     });
 });
 
