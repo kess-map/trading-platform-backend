@@ -447,7 +447,7 @@ export const getAllBuyOrders = catchAsync(async (req, res) => {
 });
 
 export const getAllApprovedBuyOrders = catchAsync(async(req,res)=>{
-  const { page = 1, limit = 10, search = '' } = req.query;
+  const { page = 1, limit = 10, search = '', paymentMethod='' } = req.query;
 
   // Find users matching the search query
   const users = await User.find({
@@ -461,6 +461,7 @@ export const getAllApprovedBuyOrders = catchAsync(async(req,res)=>{
 
   const query = {
     status: 'approved',
+    ...(paymentMethod ? { paymentMethod } : {}),
     ...(search ? { user: { $in: userIds } } : {}),
   };
 

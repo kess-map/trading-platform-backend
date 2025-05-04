@@ -7,6 +7,7 @@ const sellOrderSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ['bank', 'usdt'], required: true },
   bankName: {type: String},
   accountNumber: {type: String},
+  accountName: {type: String},
   cryptoAddress: {type: String},
   cryptoNetwork: {type: String},
   status: {

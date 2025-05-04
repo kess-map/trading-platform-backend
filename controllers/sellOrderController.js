@@ -1,21 +1,39 @@
 import SellOrder from "../models/sellOrderModel.js";
 import catchAsync from "../utils/catchAsync.js";
-import { success } from "../utils/response.js";
+import { failure, success } from "../utils/response.js";
 
 export const createSellOrder = catchAsync(async(req, res)=>{
     const userId = req.userId
-    const {amount, paymentMethod} = req.body
+    const {amount, bankName, accountName, accountNumber, network, walletAddress, paymentMethod} = req.body
 
-    const newSellOrder = new SellOrder({
-        user: userId,
-        amount,
-        remainingAmount: amount,
-        paymentMethod
-    })
+    if(!paymentMethod) return failure(res, 'Input a valid payment method', 400)
 
-    await newSellOrder.save()
+    if(paymentMethod === 'bank'){
+        const newBankSellOrder = new SellOrder({
+            user: userId,
+            amount: Number(amount),
+            remainingAmount: Number(amount),
+            paymentMethod,
+            bankName,
+            accountNumber,
+            accountName
+        })
+        
+        await newBankSellOrder.save()
+    }else{
+        const newCryptoSellOrder = new SellOrder({
+            user: userId,
+            amount: Number(amount),
+            remainingAmount: Number(amount),
+            paymentMethod,
+            cryptoAddress: walletAddress,
+            cryptoNetwork: network
+        })
+        
+        await newCryptoSellOrder.save()
+    }
 
-    success(res, newSellOrder, 'new sell order created successfully', 201)
+    success(res, {}, 'new sell order created successfully', 201)
 })
 
 export const getPendingSellOrders = catchAsync(async(req, res)=>{

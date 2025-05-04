@@ -31,8 +31,8 @@ export const getBuyAndSellOrders = catchAsync(async (req, res) => {
   const userId = req.userId;
 
   const [buyOrders, sellOrders, matchedOrders] = await Promise.all([
-    BuyOrder.find({ user: userId }).populate('user', 'phoneNumber').lean(),
-    SellOrder.find({ user: userId }).populate('user', 'phoneNumber').lean(),
+    BuyOrder.find({ user: userId }).populate('user', 'phoneNumber fullName').lean(),
+    SellOrder.find({ user: userId }).populate('user', 'phoneNumber fullName').lean(),
     MatchedOrder.find({
       $or: [{ buyer: userId }, { seller: userId }]
     })
