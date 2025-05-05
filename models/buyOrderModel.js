@@ -6,7 +6,7 @@ const buyOrderSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ['bank', 'usdt'], required: true },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'matched', 'paid', 'declined'],
+    enum: ['pending', 'approved', 'matched', 'paid', 'declined', 'cancelled'],
     default: 'pending'
   },
   matchedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'SellOrder' },

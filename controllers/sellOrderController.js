@@ -43,3 +43,20 @@ export const getPendingSellOrders = catchAsync(async(req, res)=>{
 
     success(res, sellOrders)
 })
+
+export const cancelSellOrder = catchAsync(async(req, res)=>{
+  const {id} = req.params
+  const userId = req.userId
+
+  const sellOrder = await SellOrder.findById(id)
+
+  if(!sellOrder) return failure(res, 'Sell Order not found', 404)
+
+  if(sellOrder.user.toString() !== userId.toString()) return failure(res, 'You can only update sell orders created by you') 
+
+  sellOrder.status = 'cancelled'
+
+  await sellOrder.save()
+
+  success(res, {}, 'Sell Order canceled successfully')
+})

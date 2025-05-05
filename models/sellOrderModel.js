@@ -12,7 +12,7 @@ const sellOrderSchema = new mongoose.Schema({
   cryptoNetwork: {type: String},
   status: {
     type: String,
-    enum: ['pending', 'approved', 'matched', 'confirmed', 'cancelled'],
+    enum: ['pending', 'approved', 'matched', 'confirmed', 'declined', 'cancelled'],
     default: 'pending'
   },
 }, {timestamps: true});

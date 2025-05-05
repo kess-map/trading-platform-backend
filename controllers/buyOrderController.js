@@ -2,7 +2,7 @@ import BuyOrder from "../models/buyOrderModel.js";
 import SellOrder from '../models/sellOrderModel.js'
 import MatchedOrder from '../models/matchedOrderModel.js'
 import catchAsync from "../utils/catchAsync.js";
-import { success } from "../utils/response.js";
+import { failure, success } from "../utils/response.js";
 
 export const createBuyOrder = catchAsync(async(req, res)=>{
     const userId = req.userId
@@ -72,3 +72,20 @@ export const getBuyAndSellOrders = catchAsync(async (req, res) => {
 
   success(res, response);
 });
+
+export const cancelBuyOrder = catchAsync(async(req, res)=>{
+  const userId = req.userId
+  const {id} = req.params
+
+  const buyOrder = await BuyOrder.findById(id)
+
+  if(!buyOrder) return failure(res, 'Buy Order not found', 404)
+
+  if(buyOrder.user.toString() !== userId.toString()) return failure(res, 'You can only update sell orders created by you')
+
+  buyOrder.status = 'cancelled'
+
+  await buyOrder.save()
+
+  success(res, {}, 'Buy Order canceled successfully')
+})
