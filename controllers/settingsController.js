@@ -1,6 +1,8 @@
 import ProfileEditRequest from '../models/profileEditRequestModel.js';
 import { failure, success } from '../utils/response.js';
 import catchAsync from '../utils/catchAsync.js'
+import IdVerification from '../models/idVerificationModel.js';
+import cloudinary from '../utils/cloudinary.js'
  
 export const requestProfileEdit = catchAsync(async (req, res) => {
   const userId = req.userId;
@@ -15,4 +17,39 @@ export const requestProfileEdit = catchAsync(async (req, res) => {
   await request.save();
 
   success(res, {}, 'Profile update request submitted', 201)
+})
+
+export const requestIdentityVerification = catchAsync(async (req, res) => {
+  const userId = req.userId;
+  const {country, verificationType, frontImage, backImage } = req.body
+ 
+  const existing = await IdVerification.findOne({ user: userId, status: 'pending' });
+  if (existing) {
+    return failure(res, 'You already have a pending request')
+  }
+
+  const uploadBase64 = async (base64, folder) => {
+    return await cloudinary.uploader.upload(base64, {
+      folder,
+      resource_type: 'image',
+    });
+  };
+
+  const [frontUpload, backUpload] = await Promise.all([
+    uploadBase64(frontImage, 'identity_verifications/front'),
+    uploadBase64(backImage, 'identity_verifications/back'),
+  ]);
+ 
+  const request = new IdVerification({ user: userId, type:verificationType, country, frontImage: frontUpload.secure_url, backImage: backUpload.secure_url});
+  await request.save();
+
+  success(res, {}, 'Identity Verification request submitted', 201)
+})
+
+export const getPendingRequestVerification = catchAsync(async(req, res)=>{
+  const userId = req.userId
+
+  const hasPendingVerification = await IdVerification.findOne({user: userId, status: 'pending'})
+
+  success(res, hasPendingVerification ? true : false)
 })

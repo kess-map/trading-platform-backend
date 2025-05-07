@@ -1,4 +1,5 @@
 import Investment from '../models/investmentModel.js';
+import ReferralBonus from '../models/referralBonusModel.js';
 import User from '../models/userModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import { success, failure } from '../utils/response.js';
@@ -88,10 +89,17 @@ export const creditInvestmentReturns = catchAsync(async (req, res) => {
       if (user.referredBy) {
         const referrer = await User.findById(user.referredBy);
         if (referrer) {
-          const referralBonus = roiAmount * 0.05; 
+          const referralBonus = roiAmount * 0.5; 
           referrer.referralBonusBalance += referralBonus;
           referrer.availableBalance += referralBonus;
           await referrer.save();
+
+          await ReferralBonus.create({
+            referrer: user.referredBy,
+            referredUser: investment.user,
+            investment: investment._id,
+            bonusAmount: referralBonus
+          });
         }
       }
 
@@ -214,6 +222,58 @@ export const getInvestmentCountdown = catchAsync(async (req, res) => {
       countdownEndsAt,
       percentageCompleted: Number(percentageCompleted.toFixed(2))
     });
+});
+
+export const getRefferralDetails = catchAsync(async(req, res)=>{
+  const userId = req.userId
+
+  const referrals = await User.find({referredBy: userId})
+
+  const referralList = await Promise.all(
+    referrals.map(async (ref) => {
+      const investments = await Investment.find({ user: ref._id });
+      const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
+
+      const bonuses = await ReferralBonus.find({ referrer: userId, referredUser: ref._id });
+      const totalBonus = bonuses.reduce((sum, b) => sum + b.bonusAmount, 0);
+
+      return {
+        username: ref.username,
+        amountInvested: totalInvested,
+        dateJoined: ref.createdAt,
+        bonus: totalBonus
+      };
+    })
+  );
+
+  res.status(200).json({ referralList })
+})
+
+export const getReferralCounts = catchAsync(async (req, res) => {
+  const userId = req.userId;
+
+  // Get all users referred by the current user
+  const referredUsers = await User.find({ referredBy: userId }).select('_id');
+
+  const totalReferrals = referredUsers.length;
+
+  if (totalReferrals === 0) {
+    return res.json({ totalReferrals: 0, activeReferrals: 0 });
+  }
+
+  const referredUserIds = referredUsers.map(user => user._id);
+
+  // Count how many referred users have made at least one investment
+  const activeReferralUsers = await Investment.distinct('user', {
+    user: { $in: referredUserIds }
+  });
+
+  const activeReferrals = activeReferralUsers.length;
+
+  res.json({
+    totalReferrals,
+    activeReferrals
+  });
 });
 
 
