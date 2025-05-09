@@ -3,6 +3,7 @@ import SellOrder from '../models/sellOrderModel.js'
 import MatchedOrder from '../models/matchedOrderModel.js'
 import catchAsync from "../utils/catchAsync.js";
 import { failure, success } from "../utils/response.js";
+import cloudinary from '../utils/cloudinary.js'
 
 export const createBuyOrder = catchAsync(async(req, res)=>{
     const userId = req.userId
@@ -34,10 +35,11 @@ export const getBuyAndSellOrders = catchAsync(async (req, res) => {
     BuyOrder.find({ user: userId }).populate('user', 'phoneNumber fullName').lean(),
     SellOrder.find({ user: userId }).populate('user', 'phoneNumber fullName').lean(),
     MatchedOrder.find({
-      $or: [{ buyer: userId }, { seller: userId }]
+      $or: [{ buyer: userId }, { seller: userId }],
+      status: 'deployed',
     })
       .populate('buyer', 'phoneNumber')
-      .populate('seller', 'phoneNumber')
+      .populate('seller', 'phoneNumber fullName')
       .populate('buyOrder')
       .populate('sellOrder')
       .lean()
@@ -52,7 +54,7 @@ export const getBuyAndSellOrders = catchAsync(async (req, res) => {
   const matchedBuyOrders = matchedOrders
     .filter(order => String(order.buyer._id) === String(userId))
     .map(order => ({
-      ...order.buyOrder,
+      ...order,
       matchedOrder: order,
       status: order.status
     }));
@@ -60,7 +62,7 @@ export const getBuyAndSellOrders = catchAsync(async (req, res) => {
   const matchedSellOrders = matchedOrders
     .filter(order => String(order.seller._id) === String(userId))
     .map(order => ({
-      ...order.sellOrder,
+      ...order,
       matchedOrder: order,
       status: order.status
     }));
@@ -88,4 +90,63 @@ export const cancelBuyOrder = catchAsync(async(req, res)=>{
   await buyOrder.save()
 
   success(res, {}, 'Buy Order canceled successfully')
+})
+
+export const payForOrder = catchAsync(async(req, res)=>{
+  const {paymentProof} = req.body
+  const {id} = req.params
+  const userId = req.userId
+
+  const matchedOrder = await MatchedOrder.findById(id);
+  if (!matchedOrder) {
+    return failure(res, 'matched order not found', 404)
+  }
+
+  if (matchedOrder.buyer.toString() !== userId.toString()) {
+    return failure(res, 'only buyer can access this route', 403)
+  }
+
+  if (!paymentProof) {
+    failure(res, 'Payment proof is required', 400)
+  }
+
+  const result = await cloudinary.uploader.upload(paymentProof, {
+    folder: "proofs",
+  });
+
+  matchedOrder.proofOfPayment = result.secure_url;
+  matchedOrder.paymentStatus = "paid";
+  matchedOrder.paidAt = new Date
+  await matchedOrder.save();
+
+  success(res, matchedOrder)
+})
+
+export const confirmOrderPayment = catchAsync(async(req, res)=>{
+  const {id} = req.params
+  const userId = req.userId
+
+  const matchedOrder = await MatchedOrder.findById(id);
+  if (!matchedOrder) {
+    return failure(res, 'matched order not found', 404)
+  }
+
+  if (matchedOrder.seller.toString() !== userId.toString()) {
+    return failure(res, 'only seller can access this route', 403)
+  }
+
+  matchedOrder.paymentStatus = "confirmed";
+  matchedOrder.status = 'completed'
+
+  const sellOrder = await SellOrder.findById(matchedOrder.sellOrder)
+  const buyOrder = await BuyOrder.findById(matchedOrder.buyOrder)
+
+  sellOrder.status === "completed"
+  buyOrder.status === 'completed'
+
+  await matchedOrder.save();
+  await sellOrder.save();
+  await buyOrder.save();
+
+  success(res, matchedOrder)
 })

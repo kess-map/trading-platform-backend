@@ -3,6 +3,8 @@ import { failure, success } from '../utils/response.js';
 import catchAsync from '../utils/catchAsync.js'
 import IdVerification from '../models/idVerificationModel.js';
 import cloudinary from '../utils/cloudinary.js'
+import User from '../models/userModel.js';
+import bcrypt from 'bcryptjs'
  
 export const requestProfileEdit = catchAsync(async (req, res) => {
   const userId = req.userId;
@@ -52,4 +54,27 @@ export const getPendingRequestVerification = catchAsync(async(req, res)=>{
   const hasPendingVerification = await IdVerification.findOne({user: userId, status: 'pending'})
 
   success(res, hasPendingVerification ? true : false)
+})
+
+export const changePassword = catchAsync(async(req, res)=>{
+  const userId = req.userId
+  const {oldPassword, newPassword} = req.body
+
+  const user = await User.findById(userId)
+
+  if(!user) return failure(res, 'User not found', 404)
+
+  const isOldPasswordCorrect = await bcrypt.compare(oldPassword, user.password)
+
+  if(!isOldPasswordCorrect) return failure(res, 'Incorrect password', 404)
+
+  const salt = await bcrypt.genSalt(10)
+
+  const hashedPassword = await bcrypt.hash(newPassword, salt)
+
+  user.password = hashedPassword
+
+  await user.save()
+
+  success(res, {}, 'Password Changed Successfully')
 })

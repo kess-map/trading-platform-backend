@@ -8,10 +8,16 @@ const matchedOrderSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   status: {
     type: String,
+    enum: ['pending', 'deployed', 'completed',],
+    default: 'pending'
+  },
+  paymentStatus: {
+    type: String,
     enum: ['pending', 'paid', 'confirmed', 'cancelled'],
     default: 'pending'
   },
   proofOfPayment: { type: String },
+  paidAt: { type: Date },
   confirmedAt: { type: Date },
 }, {timestamps: true});
  
