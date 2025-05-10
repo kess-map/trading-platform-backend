@@ -5,6 +5,7 @@ import IdVerification from '../models/idVerificationModel.js';
 import cloudinary from '../utils/cloudinary.js'
 import User from '../models/userModel.js';
 import bcrypt from 'bcryptjs'
+import Notification from '../models/notificationModel.js';
  
 export const requestProfileEdit = catchAsync(async (req, res) => {
   const userId = req.userId;
@@ -75,6 +76,13 @@ export const changePassword = catchAsync(async(req, res)=>{
   user.password = hashedPassword
 
   await user.save()
+
+  await Notification.create({
+    userId: user._id,
+    category: 'settings',
+    title: "Password Changed Successfully",
+    content: 'You changed your password. If you didn’t perform this action, contact support immediately.'
+  })
 
   success(res, {}, 'Password Changed Successfully')
 })

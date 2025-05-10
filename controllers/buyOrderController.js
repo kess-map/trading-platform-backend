@@ -4,6 +4,8 @@ import MatchedOrder from '../models/matchedOrderModel.js'
 import catchAsync from "../utils/catchAsync.js";
 import { failure, success } from "../utils/response.js";
 import cloudinary from '../utils/cloudinary.js'
+import User from "../models/userModel.js";
+import Notification from "../models/notificationModel.js";
 
 export const createBuyOrder = catchAsync(async(req, res)=>{
     const userId = req.userId
@@ -119,6 +121,13 @@ export const payForOrder = catchAsync(async(req, res)=>{
   matchedOrder.paidAt = new Date
   await matchedOrder.save();
 
+  await Notification.create({
+    userId: matchedOrder.seller,
+    category: 'orders',
+    title: 'Sell Order Payment',
+    content: 'Buyer has just sent payment, view proof and confirm payment'
+  })
+
   success(res, matchedOrder)
 })
 
@@ -144,9 +153,28 @@ export const confirmOrderPayment = catchAsync(async(req, res)=>{
   sellOrder.status === "completed"
   buyOrder.status === 'completed'
 
+  const buyer = await User.findById(matchedOrder.buyer)
+
+  buyer.availableBalance += matchedOrder.amount
+
+  await buyer.save()
   await matchedOrder.save();
   await sellOrder.save();
   await buyOrder.save();
+
+  await Notification.create({
+    userId: matchedOrder.buyer,
+    category: 'orders',
+    title: 'Buy Order Payment Confirmed',
+    content: `Seller has confirmed your payment and ${matchedOrder.amount}CHT has been added to your wallet`
+  })
+
+  await Notification.create({
+    userId: matchedOrder.seller,
+    category: 'orders',
+    title: 'Sell Order Completed',
+    content: 'Your sell order has been marked as completed'
+  })
 
   success(res, matchedOrder)
 })

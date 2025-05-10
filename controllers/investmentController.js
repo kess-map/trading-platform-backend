@@ -1,5 +1,6 @@
 import Investment from '../models/investmentModel.js';
 import ReferralBonus from '../models/referralBonusModel.js';
+import Notification from '../models/notificationModel.js';
 import User from '../models/userModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import { success, failure } from '../utils/response.js';
@@ -86,6 +87,13 @@ export const creditInvestmentReturns = catchAsync(async (req, res) => {
 
       user.availableBalance += roiAmount;
 
+      await Notification.create({
+        userId: user._id,
+        category: 'investments',
+        title: `Investment Completed`,
+        content: `${roiAmount}CHT has been added to your wallet on completed Investment`
+      })
+
       if (user.referredBy) {
         const referrer = await User.findById(user.referredBy);
         if (referrer) {
@@ -100,6 +108,13 @@ export const creditInvestmentReturns = catchAsync(async (req, res) => {
             investment: investment._id,
             bonusAmount: referralBonus
           });
+
+          await Notification.create({
+            userId: user.referredBy,
+            category: 'investments',
+            title: `Referral Bonus Credited`,
+            content: `${referralBonus}CHT has been added to your wallet.`
+          })
         }
       }
 
@@ -211,8 +226,8 @@ export const getInvestmentCountdown = catchAsync(async (req, res) => {
     const now = new Date();
     const countdownEndsAt = new Date(investment.countdownEndsAt);
 
-    const totalCountdownDuration = countdownEndsAt - investment.investmentCreatedAt;
-    const elapsed = now - investment.investmentCreatedAt;
+    const totalCountdownDuration = countdownEndsAt - investment.createdAt;
+    const elapsed = now - investment.createdAt;
 
     let percentageCompleted = (elapsed / totalCountdownDuration) * 100;
     if (percentageCompleted > 100) percentageCompleted = 100;

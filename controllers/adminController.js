@@ -296,12 +296,10 @@ export const matchBuyersToSeller = catchAsync(async (req, res) => {
       return failure(res, `Buy order ${match.buyOrderId} not valid`, 400)
     }
  
-    // Update Buy Order
     buyOrder.status = 'matched';
     buyOrder.matchedTo = sellerOrder._id;
     await buyOrder.save();
  
-    // Create Matched Order
     const matched = new MatchedOrder({
       seller: sellerOrder.user._id,
       buyer: buyOrder.user._id,
@@ -313,8 +311,7 @@ export const matchBuyersToSeller = catchAsync(async (req, res) => {
     await matched.save();
     matchedOrders.push(matched);
   }
- 
-  // Update remaining and status
+
   sellerOrder.remainingAmount = remaining - totalToMatch;
   sellerOrder.status = sellerOrder.remainingAmount === 0 ? 'matched' : 'pending';
   await sellerOrder.save();

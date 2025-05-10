@@ -1,3 +1,4 @@
+import User from "../models/userModel.js";
 import SellOrder from "../models/sellOrderModel.js";
 import catchAsync from "../utils/catchAsync.js";
 import { failure, success } from "../utils/response.js";
@@ -5,6 +6,14 @@ import { failure, success } from "../utils/response.js";
 export const createSellOrder = catchAsync(async(req, res)=>{
     const userId = req.userId
     const {amount, bankName, accountName, accountNumber, network, walletAddress, paymentMethod} = req.body
+
+    const user = await User.findById(userId)
+
+    if(!user) return failure(res, 'User not found', 404)
+
+    if(user.availableBalance < amount) return failure(res, 'Insufficient Balance', 400)
+
+    user.availableBalance -= Number(amount)
 
     if(!paymentMethod) return failure(res, 'Input a valid payment method', 400)
 
@@ -30,6 +39,7 @@ export const createSellOrder = catchAsync(async(req, res)=>{
             cryptoNetwork: network
         })
         
+        await user.save()
         await newCryptoSellOrder.save()
     }
 

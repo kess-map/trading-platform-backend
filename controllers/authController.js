@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import {generateTokenAndSetCookie} from '../utils/generateTokenAndSetCookie.js'
 import twilio from 'twilio';
 import bcrypt from 'bcryptjs'
-import sendSMS from "../utils/smsService.js";
 
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
@@ -54,7 +53,11 @@ export const signup = catchAsync(async (req, res) => {
 
   generateTokenAndSetCookie(res, user._id)
 
-  await sendSMS(phoneNumber, `Your Verification Code is ${phoneVerificationCode}`)
+  await twilioClient.messages.create({
+    body: `Your verification code is: ${phoneVerificationCode}`,
+    from: process.env.TWILIO_PHONE_NUMBER,
+    to: phoneNumber,
+  });
 
   return success(res, { user }, 'Account created successfully.');
 });
@@ -118,11 +121,11 @@ export const resendPhoneOtp = catchAsync(async (req, res) => {
 
   await user.save();
 
-  // await twilioClient.messages.create({
-  //   body: `Your new verification code is: ${newCode}`,
-  //   from: process.env.TWILIO_PHONE_NUMBER,
-  //   to: phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`,
-  // });
+  await twilioClient.messages.create({
+    body: `Your new verification code is: ${newCode}`,
+    from: process.env.TWILIO_PHONE_NUMBER,
+    to: phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`,
+  });
 
   return success(res, null, 'New verification code sent successfully.');
 });
