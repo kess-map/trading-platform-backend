@@ -1,5 +1,5 @@
 import express from "express";
-import { creditUserBalance, deployMatchedOrders, getAllApprovedBuyOrders, getAllBuyOrders, getAllInvestments, getAllSellOrders, getAllUsers, getBuyOrderById, getDashboardMetrics, getIdVerficationRequest, getMatchedOrders, getProfileEditRequest, getSellOrderById, getUserById, handleBuyOrderRequest, handleProfileEditRequest, handleSellOrderRequest, login, logout, matchBuyersToSeller, suspendUser, updateUserRole } from "../controllers/adminController.js";
+import { creditUserBalance, deployMatchedOrders, getAllApprovedBuyOrders, getAllBuyOrders, getAllIdVerificationRequests, getAllInvestments, getAllProfileRequests, getAllSellOrders, getAllUsers, getBuyOrderById, getDashboardMetrics, getIdVerficationRequest, getMatchedOrders, getProfileEditRequest, getSellOrderById, getUserById, handleBuyOrderRequest, handleIdVerificationRequest, handleProfileEditRequest, handleSellOrderRequest, login, logout, matchBuyersToSeller, suspendUser, updateUserRole } from "../controllers/adminController.js";
 import {verifyToken} from '../middleware/verifyToken.js'
 import {isAdmin} from '../middleware/isAdmin.js'
 import { isSuperAdmin } from "../middleware/isSuperAdmin.js";
@@ -14,11 +14,17 @@ router.get('/users', verifyToken, isAdmin, getAllUsers)
 
 router.get('/user/:id', verifyToken, isAdmin, getUserById)
 
-router.get('/user/profile-request/:id', verifyToken, isAdmin, getProfileEditRequest)
+router.get('/profile-requests', verifyToken, isAdmin, getAllProfileRequests)
 
-router.post('/user/profile-request/:id', verifyToken, isAdmin, handleProfileEditRequest)
+router.get('/profile-request/:id', verifyToken, isAdmin, getProfileEditRequest)
 
-router.get('/user/id-verification/:id', verifyToken, isAdmin, getIdVerficationRequest)
+router.post('/profile-request/:id', verifyToken, isAdmin, handleProfileEditRequest)
+
+router.get('/id-verification', verifyToken, isAdmin, getAllIdVerificationRequests)
+
+router.get('/id-verification/:id', verifyToken, isAdmin, getIdVerficationRequest)
+
+router.post('/id-verification/:id', verifyToken, isAdmin, handleIdVerificationRequest)
 
 router.post('/user/top-up/:id', verifyToken, isSuperAdmin, creditUserBalance)
 

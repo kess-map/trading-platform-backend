@@ -185,22 +185,54 @@ export const creditUserBalance = catchAsync(async(req, res)=>{
 
   return success(res, user, 'User balance updated Sucessfully')
 })
+
+export const getAllIdVerificationRequests = catchAsync(async (req, res) => {
+  const request = await IdVerification.find({status: 'pending'}).populate('user', 'fullName email username')
+  success(res, request)
+})
  
 export const getIdVerficationRequest = catchAsync(async (req, res) => {
   const {id} = req.params
-  const idVerification = await IdVerification.findOne({user: id })
-  success(res, idVerification)
+  const request = await IdVerification.findOne({_id:id, status: 'pending'})
+  if(!request) return failure(res, 'Request not found', 404)
+  success(res, request)
 });
+
+export const handleIdVerificationRequest = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { action } = req.body; 
+ 
+  const request = await IdVerification.findById(id);
+  if (!request || request.status !== 'pending') {
+    return failure(res, 'Request not found or already handled', 400)
+  }
+ 
+  if (action === 'approved') {
+    await User.findByIdAndUpdate(request.user, {isDocumentVerified: true});
+    request.status = 'approved';
+  } else {
+    request.status = 'declined';
+  }
+ 
+  await request.save();
+  return success(res, {}, `Request ${action} successfully`)
+});
+
+export const getAllProfileRequests = catchAsync(async (req, res) => {
+  const request = await ProfileEditRequest.find({status: 'pending'}).populate('user', 'fullName email username')
+  success(res, request)
+})
 
 export const getProfileEditRequest = catchAsync(async (req, res) => {
   const {id} = req.params
-  const request = await ProfileEditRequest.findOne({user: id ,status: 'pending' })
+  const request = await ProfileEditRequest.findOne({_id:id, status: 'pending'}).populate('user', 'fullName username email phoneNumber country')
+  if(!request) return failure(res, 'Request not found', 404)
   success(res, request)
 });
  
 export const handleProfileEditRequest = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const { action } = req.body; // 'approved' or 'rejected'
+  const { action } = req.body; 
  
   const request = await ProfileEditRequest.findById(id);
   if (!request || request.status !== 'pending') {
@@ -643,7 +675,8 @@ export const getAllInvestments = catchAsync(async (req, res) => {
   // Build investment filter
   const filter = {
     ...(search && { user: { $in: userIds } }),
-    ...(status && { status }),
+    ...(status === 'active' && { roiCredited: false }),
+    ...(status === 'completed' && { roiCredited: true }),
   };
 
   const investments = await Investment.find(filter)

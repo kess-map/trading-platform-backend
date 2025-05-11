@@ -154,35 +154,6 @@ export const transferInitialInvestment = catchAsync(async (req, res) => {
     console.log('transferInitialInvestment completed successfully.');
 });
 
-// export const reinvestReturns = catchAsync(async (req, res) => {
-//     const { investmentId } = req.params;
-//     const { amount, planDurationDays } = req.body;
-//     const userId = req.userId;
-
-//     const investment = await Investment.findById(investmentId);
-//     const user = await User.findById(userId);
-
-//     if (!investment) return res.status(404).json({ message: 'Investment not found' });
-//     if (!user) return res.status(404).json({ message: 'User not found' });
-
-//     if (user.availableBalance < amount) {
-//       return res.status(400).json({ message: 'Insufficient available balance for reinvestment' });
-//     }
-
-//     await debitAvailableBalance(user, amount);
-//     await creditStakedBalance(user, amount);
-
-//     investment.reinvestments.push({
-//       amount,
-//       planDurationDays,
-//       reinvestedAt: new Date(),
-//     });
-
-//     await investment.save();
-
-//     return res.status(200).json({ message: 'Reinvested successfully' });
-// });
-
 export const getUserInvestments = catchAsync(async (req, res) => {
     const userId = req.userId;
 
