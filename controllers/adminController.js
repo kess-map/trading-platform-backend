@@ -268,10 +268,10 @@ export const getDashboardMetrics = catchAsync(async (req, res) => {
     BuyOrder.countDocuments({ status: 'pending' }),
     SellOrder.countDocuments({ status: 'pending' }),
     MatchedOrder.countDocuments(),
-    MatchedOrder.countDocuments({status: 'paid'}),
-    Investment.countDocuments({ status: 'active' }),
+    MatchedOrder.countDocuments({status: 'completed'}),
+    Investment.countDocuments({ roiCredited: false }),
     Investment.aggregate([
-      { $match: { status: 'active' } },
+      { $match: { roiCredited: false } },
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ])
   ]);
@@ -703,6 +703,11 @@ export const logout = (req, res) => {
   });
   success(res, {},'Logged out successfully')
 };
+
+export const getLiveSessions = catchAsync(async (req, res) => {
+  const sessions = await LiveSession.find().sort({ createdAt: -1 });
+  success(res, sessions)
+})
 
 export const createLiveSession = catchAsync(async (req, res) => {
     const { startTime, durationInMinutes } = req.body;

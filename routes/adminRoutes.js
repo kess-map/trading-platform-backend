@@ -1,5 +1,5 @@
 import express from "express";
-import { creditUserBalance, deployMatchedOrders, getAllApprovedBuyOrders, getAllBuyOrders, getAllIdVerificationRequests, getAllInvestments, getAllProfileRequests, getAllSellOrders, getAllUsers, getBuyOrderById, getDashboardMetrics, getIdVerficationRequest, getMatchedOrders, getProfileEditRequest, getSellOrderById, getUserById, handleBuyOrderRequest, handleIdVerificationRequest, handleProfileEditRequest, handleSellOrderRequest, login, logout, matchBuyersToSeller, suspendUser, updateUserRole } from "../controllers/adminController.js";
+import { creditUserBalance, getLiveSessions, deployMatchedOrders, getAllApprovedBuyOrders, getAllBuyOrders, getAllIdVerificationRequests, getAllInvestments, getAllProfileRequests, getAllSellOrders, getAllUsers, getBuyOrderById, getDashboardMetrics, getIdVerficationRequest, getMatchedOrders, getProfileEditRequest, getSellOrderById, getUserById, handleBuyOrderRequest, handleIdVerificationRequest, handleProfileEditRequest, handleSellOrderRequest, login, logout, matchBuyersToSeller, suspendUser, updateUserRole, createLiveSession, deleteLiveSession } from "../controllers/adminController.js";
 import {verifyToken} from '../middleware/verifyToken.js'
 import {isAdmin} from '../middleware/isAdmin.js'
 import { isSuperAdmin } from "../middleware/isSuperAdmin.js";
@@ -53,6 +53,12 @@ router.get('/matched-orders', verifyToken, isAdmin, getMatchedOrders)
 router.post('/matched-orders/deploy', verifyToken, isAdmin, deployMatchedOrders)
 
 router.get('/investments', verifyToken, isAdmin, getAllInvestments)
+
+router.get('/livesessions', verifyToken, isAdmin, getLiveSessions)
+
+router.post('/livesessions/create', verifyToken, isAdmin, createLiveSession)
+
+router.delete('/livesessions/:id', verifyToken, isAdmin, deleteLiveSession)
 
 router.post('/logout', verifyToken, isAdmin, logout)
 

@@ -10,6 +10,7 @@ import sellOrderRoutes from './routes/sellOrderRoutes.js'
 import investmentRoutes from './routes/investmentRoutes.js'
 import settingsRoutes from './routes/settingsRoute.js'
 import notificationRoutes from './routes/notificationRoutes.js'
+import appealRoutes from './routes/appealRoutes.js'
 import liveSessionRoutes from './routes/liveSessionRoutes.js'
 import './utils/cron.js'
 
@@ -40,6 +41,7 @@ app.use('/api/sell-orders', sellOrderRoutes)
 app.use('/api/investments', investmentRoutes)
 app.use('/api/settings', settingsRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/appeals', appealRoutes)
 app.use('/api/live-sessions', liveSessionRoutes)
 
 app.listen(port, ()=>{
