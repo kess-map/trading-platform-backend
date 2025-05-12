@@ -19,14 +19,6 @@ const appealSchema = new mongoose.Schema({
   reason: {
     type: String,
     required: true,
-    enum: [
-      'late confirmation',
-      'payment not confirmed',
-      'payment not received',
-      'fake proof of payment',
-      'user unresponsive',
-      'other',
-    ],
   },
   description: {
     type: String,
@@ -34,7 +26,7 @@ const appealSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'reviewed', 'resolved', 'rejected'],
+    enum: ['pending', 'resolved', 'rejected'],
     default: 'pending',
   },
   resolvedBy: {
