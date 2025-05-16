@@ -11,7 +11,6 @@ const sendSMS = async (toPhoneNumber, message) => {
       channel: "generic", 
       api_key: process.env.TERMII_API_KEY,
     });
-    console.log(response)
     return response.data;
   } catch (error) {
     console.error('Failed to send SMS:', error.response?.data || error.message);
