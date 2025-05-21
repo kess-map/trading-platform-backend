@@ -3,11 +3,8 @@ import catchAsync from "../utils/catchAsync.js"
 import { failure, success } from "../utils/response.js"
 import { v4 as uuidv4 } from "uuid";
 import {generateTokenAndSetCookie} from '../utils/generateTokenAndSetCookie.js'
-import twilio from 'twilio';
 import bcrypt from 'bcryptjs'
-import sendSMS from "../utils/smsService.js";
-
-const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+import sendEmail from "../utils/smsService.js";
 
 export const signup = catchAsync(async (req, res) => {
   const { fullName, username, email, phoneNumber, country, password, referralCode } = req.body;
@@ -54,7 +51,7 @@ export const signup = catchAsync(async (req, res) => {
 
   generateTokenAndSetCookie(res, user._id)
 
-  await sendSMS(phoneNumber, `Your verification code is ${phoneVerificationCode}`)
+  await sendEmail(user.email, user.fullName, phoneVerificationCode)
 
   return success(res, { user }, 'Account created successfully.');
 });
@@ -91,9 +88,9 @@ export const checkAuth = catchAsync(async (req, res)=>{
 })
 
 export const resendPhoneOtp = catchAsync(async (req, res) => {
-  const { phoneNumber } = req.body;
+  const { email } = req.body;
 
-  const user = await User.findOne({ phoneNumber });
+  const user = await User.findOne({ email });
 
   if (!user) {
     return failure(res, 'User not found.', 404);
@@ -118,7 +115,7 @@ export const resendPhoneOtp = catchAsync(async (req, res) => {
 
   await user.save();
 
-  await sendSMS(phoneNumber, `Your verification code is ${newCode}`)
+  await sendEmail(user.email, user.fullName, newCode)
 
   return success(res, null, 'New verification code sent successfully.');
 });
