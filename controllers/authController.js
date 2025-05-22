@@ -121,9 +121,9 @@ export const resendPhoneOtp = catchAsync(async (req, res) => {
 });
 
 export const verifyPhoneOtp = catchAsync(async (req, res) => {
-  const { phoneNumber, code } = req.body;
+  const { email, code } = req.body;
 
-  const user = await User.findOne({ phoneNumber });
+  const user = await User.findOne({ email });
 
   if (!user) {
     return failure(res, 'User not found.', 404);
@@ -153,5 +153,5 @@ export const verifyPhoneOtp = catchAsync(async (req, res) => {
   user.wrongOtpAttempts = 0;
   await user.save();
 
-  return success(res, null, 'Phone number verified successfully.');
+  return success(res, null, 'Email verified successfully.');
 }); 
