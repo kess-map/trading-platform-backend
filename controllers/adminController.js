@@ -105,6 +105,22 @@ export const login = catchAsync(async (req, res)=>{
   success(res, {...user._doc, password: undefined}, 'Logged In successfully')
 })
 
+export const checkAuth = catchAsync(async (req, res)=>{
+  const user = await User.findById(req.userId)
+
+  if(!user) {
+      return failure(res, 'User Not Found', 400)
+  }
+
+  if(user.role !== 'ADMIN' && user.role !== 'SUPER-ADMIN'){
+    return failure(res, 'user not found', 400)
+  }
+  success(res, {
+      ...user._doc,
+      password: undefined
+  })
+})
+
 export const getAllUsers = catchAsync(async(req, res)=>{
   const { search = '', page = 1, limit = 15 } = req.query;
   const currentUserId = req.userId
