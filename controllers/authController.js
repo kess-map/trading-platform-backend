@@ -75,6 +75,15 @@ export const login = catchAsync(async (req, res) => {
   return success(res, { user, token }, 'Logged in successfully.');
 });
 
+export const logout = (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+  });
+  success(res, {},'Logged out successfully')
+};
+
 export const checkAuth = catchAsync(async (req, res)=>{
   const user = await User.findById(req.userId)
 
