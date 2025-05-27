@@ -4,6 +4,7 @@ const idVerificationSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     country: {type: String, required: true},
     type: {type: String, required: true},
+    idNumber: {type: String, required: true},
     status: {
       type: String,
       enum: ['pending', 'approved', 'declined'],

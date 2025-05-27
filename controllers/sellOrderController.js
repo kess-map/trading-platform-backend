@@ -15,7 +15,7 @@ export const createSellOrder = catchAsync(async(req, res)=>{
 
     user.availableBalance -= Number(amount)
 
-    const pendingSellOrders = await SellOrder.find({user: userId, status:{ $ne: 'completed'}})
+    const pendingSellOrders = await SellOrder.find({user: userId, status: 'pending'})
 
     if(!user.isDocumentVerified && pendingSellOrders.length > 3) return failure(res, 'You have already reached your sell order limit. Complete ID Verification to increase limit up to 10', 400)
 

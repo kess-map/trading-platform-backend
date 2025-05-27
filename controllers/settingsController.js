@@ -24,12 +24,16 @@ export const requestProfileEdit = catchAsync(async (req, res) => {
 
 export const requestIdentityVerification = catchAsync(async (req, res) => {
   const userId = req.userId;
-  const {country, verificationType, frontImage, backImage } = req.body
+  const {country, verificationType, idNumber, frontImage, backImage } = req.body
  
   const existing = await IdVerification.findOne({ user: userId, status: 'pending' });
   if (existing) {
     return failure(res, 'You already have a pending request')
   }
+
+  const usedVerificationNumber = await IdVerification.findOne({type: verificationType, idNumber, status: {$ne: 'declined'}})
+
+  if(usedVerificationNumber) return failure(res, 'ID has already been used')
 
   const uploadBase64 = async (base64, folder) => {
     return await cloudinary.uploader.upload(base64, {
@@ -43,7 +47,7 @@ export const requestIdentityVerification = catchAsync(async (req, res) => {
     uploadBase64(backImage, 'identity_verifications/back'),
   ]);
  
-  const request = new IdVerification({ user: userId, type:verificationType, country, frontImage: frontUpload.secure_url, backImage: backUpload.secure_url});
+  const request = new IdVerification({ user: userId, type:verificationType, idNumber, country, frontImage: frontUpload.secure_url, backImage: backUpload.secure_url});
   await request.save();
 
   success(res, {}, 'Identity Verification request submitted', 201)

@@ -51,6 +51,7 @@ export const getBuyAndSellOrders = catchAsync(async (req, res) => {
     pending: orders.filter(o => o.status === 'pending' || o.status === 'approved'),
     approved: matched,
     completed: orders.filter(o => o.status === 'completed'),
+    cancelled: orders.filter(o => o.status === 'cancelled')
   });
 
   const matchedBuyOrders = matchedOrders
