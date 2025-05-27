@@ -436,9 +436,8 @@ export const unmatchAndReplaceBuyer = catchAsync(async (req, res) => {
 })
 
 export const getAllBuyOrders = catchAsync(async (req, res) => {
-  const { search = '', page = 1, limit = 15 } = req.query;
+  const { search = '', page = 1, limit = 15, status } = req.query;
 
-  // Build match condition
   const match = {};
   if (search) {
     match.$or = [
@@ -447,7 +446,11 @@ export const getAllBuyOrders = catchAsync(async (req, res) => {
     ];
   }
 
-  // Aggregation with lookup
+  // Add status to match if provided
+  if (status) {
+    match.status = status;
+  }
+
   const pipeline = [
     {
       $lookup: {
@@ -466,7 +469,6 @@ export const getAllBuyOrders = catchAsync(async (req, res) => {
 
   const orders = await BuyOrder.aggregate(pipeline);
 
-  // Count total for pagination
   const totalCountPipeline = [
     {
       $lookup: {
@@ -563,7 +565,7 @@ export const handleBuyOrderRequest = catchAsync(async(req, res)=>{
 })
 
 export const getAllSellOrders = catchAsync(async(req, res)=>{
-  const { search = '', page = 1, limit = 15 } = req.query;
+  const { search = '', page = 1, limit = 15, status } = req.query;
 
   // Build match condition
   const match = {};
@@ -572,6 +574,10 @@ export const getAllSellOrders = catchAsync(async(req, res)=>{
       { 'user.fullName': { $regex: search, $options: 'i' } },
       { 'user.email': { $regex: search, $options: 'i' } }
     ];
+  }
+
+  if (status) {
+    match.status = status;
   }
 
   // Aggregation with lookup
