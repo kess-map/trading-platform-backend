@@ -7,7 +7,7 @@ import SellOrder from '../models/sellOrderModel.js';
 import catchAsync from './catchAsync.js';
 import User from '../models/userModel.js';
 
-cron.schedule('*/30 * * * *', async () => {
+cron.schedule('*/3 * * * *', async () => {
   console.log('Running creditInvestmentReturns...');
   await creditInvestmentReturns();
 });
