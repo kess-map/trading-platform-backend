@@ -6,6 +6,7 @@ import MatchedOrder from '../models/matchedOrderModel.js';
 import SellOrder from '../models/sellOrderModel.js';
 import catchAsync from './catchAsync.js';
 import User from '../models/userModel.js';
+import BuyOrder from '../models/buyOrderModel.js';
 
 cron.schedule('*/30 * * * *', async () => {
   console.log('Running creditInvestmentReturns...');
@@ -48,32 +49,37 @@ cron.schedule('*/15 * * * *', catchAsync(async () => {
         paymentStatus: 'pending'
       });
 
-      let totalRefunded = 0;
-
+      let totalOrders = 0
       for (const order of matchedOrders) {
         try {
-          const sellOrder = await SellOrder.findById(order.sellOrder);
-          if (!sellOrder) continue;
-
-          const sellerId = sellOrder.user;
-          const user = await User.findById(sellerId);
-          if (!user) continue;
-
-          const amount = order.amount ?? 0
-          if (!amount) continue;
-
-          user.availableBalance += amount;
-          order.status = 'cancelled';
-
-          await user.save();
-          await order.save();
-          totalRefunded++;
+          const { sellOrder: sellOrderId, buyOrder: oldBuyOrderId, amount: matchedAmount } = order;
+ 
+          const sellOrder = await SellOrder.findById(sellOrderId);
+          const oldBuyOrder = await BuyOrder.findById(oldBuyOrderId);
+        
+          if (!sellOrder || !oldBuyOrder) {
+            continue
+          }
+        
+          // Step 1: Reset old buyer's state
+          oldBuyOrder.status = 'approved';
+          oldBuyOrder.matchedTo = undefined;
+          await oldBuyOrder.save();
+        
+          // Step 2: update match status
+          order.status = 'cancelled'
+          await order.save()
+        
+          // Step 3: Increase seller's remainingAmount
+          sellOrder.remainingAmount = (sellOrder.remainingAmount || 0) + matchedAmount;
+          sellOrder.status = 'approved'
+          await sellOrder.save();
+          totalOrders++
         } catch (err) {
           console.error(`Error processing refund for order ${order._id}:`, err);
         }
       }
-
-      console.log(`Session ${session.startTime} expired. ${totalRefunded} orders cancelled and refunded.`);
+      console.log(`Session ${session.startTime} expired. ${totalOrders} orders cancelled and refunded.`);
     }
   }
 }));

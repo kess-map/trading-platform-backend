@@ -388,7 +388,7 @@ export const unmatchAndReplaceBuyer = catchAsync(async (req, res) => {
  
   // Step 1: Reset old buyer's state
   oldBuyOrder.status = 'approved';
-  oldBuyOrder.matchedTo = null;
+  oldBuyOrder.matchedTo = undefined;
   await oldBuyOrder.save();
  
   // Step 2: Remove match

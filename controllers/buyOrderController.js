@@ -150,9 +150,8 @@ export const confirmOrderPayment = catchAsync(async(req, res)=>{
 
   const sellOrder = await SellOrder.findById(matchedOrder.sellOrder)
   const buyOrder = await BuyOrder.findById(matchedOrder.buyOrder)
-
-  sellOrder.status === "completed"
-  buyOrder.status === 'completed'
+  
+  buyOrder.status = 'completed'
 
   const buyer = await User.findById(matchedOrder.buyer)
 
