@@ -132,49 +132,70 @@ export const payForOrder = catchAsync(async(req, res)=>{
   success(res, matchedOrder)
 })
 
-export const confirmOrderPayment = catchAsync(async(req, res)=>{
-  const {id} = req.params
-  const userId = req.userId
+export const confirmOrderPayment = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.userId;
 
   const matchedOrder = await MatchedOrder.findById(id);
   if (!matchedOrder) {
-    return failure(res, 'matched order not found', 404)
+    return failure(res, 'Matched order not found', 404);
   }
 
   if (matchedOrder.seller.toString() !== userId.toString()) {
-    return failure(res, 'only seller can access this route', 403)
+    return failure(res, 'Only the seller can confirm payment', 403);
   }
 
-  matchedOrder.paymentStatus = "confirmed";
-  matchedOrder.status = 'completed'
+  if (matchedOrder.paymentStatus === 'confirmed') {
+    return failure(res, 'This payment is already confirmed', 400);
+  }
 
-  const sellOrder = await SellOrder.findById(matchedOrder.sellOrder)
-  const buyOrder = await BuyOrder.findById(matchedOrder.buyOrder)
-  
-  buyOrder.status = 'completed'
+  matchedOrder.paymentStatus = 'confirmed';
+  matchedOrder.status = 'completed';
 
-  const buyer = await User.findById(matchedOrder.buyer)
+  const buyOrder = await BuyOrder.findById(matchedOrder.buyOrder);
+  const sellOrder = await SellOrder.findById(matchedOrder.sellOrder);
 
-  buyer.availableBalance += matchedOrder.amount
+  if (buyOrder) {
+    buyOrder.status = 'completed';
+    await buyOrder.save();
+  }
 
-  await buyer.save()
+  const buyer = await User.findById(matchedOrder.buyer);
+  if (buyer) {
+    buyer.availableBalance += matchedOrder.amount;
+    await buyer.save();
+  }
+
+  // Check if all matched orders for this sellOrder are completed
+  const completedMatchedOrders = await MatchedOrder.find({
+    sellOrder: sellOrder._id,
+    status: 'completed'
+  });
+
+  const totalCompletedAmount = completedMatchedOrders.reduce((sum, order) => sum + order.amount, 0);
+
+  if (totalCompletedAmount >= sellOrder.amount) {
+    sellOrder.status = 'completed';
+    await sellOrder.save();
+  }
+
   await matchedOrder.save();
-  await sellOrder.save();
-  await buyOrder.save();
 
+  // Notify buyer
   await Notification.create({
     userId: matchedOrder.buyer,
     category: 'orders',
     title: 'Buy Order Payment Confirmed',
-    content: `Seller has confirmed your payment and ${matchedOrder.amount}CHT has been added to your wallet`
-  })
+    content: `Seller has confirmed your payment. ${matchedOrder.amount}CHT has been added to your wallet.`,
+  });
 
+  // Notify seller
   await Notification.create({
     userId: matchedOrder.seller,
     category: 'orders',
     title: 'Sell Order Completed',
-    content: 'Your sell order has been marked as completed'
-  })
+    content: 'Your sell order has been marked as completed.',
+  });
 
-  success(res, matchedOrder)
-})
+  success(res, matchedOrder);
+});

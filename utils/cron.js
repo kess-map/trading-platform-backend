@@ -62,7 +62,7 @@ cron.schedule('*/15 * * * *', catchAsync(async () => {
           }
         
           // Step 1: Reset old buyer's state
-          oldBuyOrder.status = 'approved';
+          oldBuyOrder.status = 'cancelled';
           oldBuyOrder.matchedTo = undefined;
           await oldBuyOrder.save();
         
