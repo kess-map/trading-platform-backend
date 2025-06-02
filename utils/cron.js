@@ -38,7 +38,7 @@ cron.schedule('*/15 * * * *', catchAsync(async () => {
   const SESSION_DURATION_HOURS = 2;
 
   for (const session of sessions) {
-    const sessionStart = new Date(`${today}T${session.startTime}:00Z`);
+    const sessionStart = new Date(`${today}T${session.startTime}:00`);
     const sessionExpiry = new Date(sessionStart.getTime() + SESSION_DURATION_HOURS * 60 * 60 * 1000);
 
     const diffInMinutes = Math.abs((now.getTime() - sessionExpiry.getTime()) / (1000 * 60));
