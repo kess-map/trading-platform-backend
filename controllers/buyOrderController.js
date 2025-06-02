@@ -152,6 +152,8 @@ export const confirmOrderPayment = catchAsync(async (req, res) => {
   matchedOrder.paymentStatus = 'confirmed';
   matchedOrder.status = 'completed';
 
+  await matchedOrder.save();
+
   const buyOrder = await BuyOrder.findById(matchedOrder.buyOrder);
   const sellOrder = await SellOrder.findById(matchedOrder.sellOrder);
 
@@ -178,8 +180,6 @@ export const confirmOrderPayment = catchAsync(async (req, res) => {
     sellOrder.status = 'completed';
     await sellOrder.save();
   }
-
-  await matchedOrder.save();
 
   // Notify buyer
   await Notification.create({
