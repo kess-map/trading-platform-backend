@@ -40,7 +40,7 @@ export const getBuyAndSellOrders = catchAsync(async (req, res) => {
       $or: [{ buyer: userId }, { seller: userId }],
       status: 'deployed',
     })
-      .populate('buyer', 'phoneNumber')
+      .populate('buyer', 'phoneNumber fullName')
       .populate('seller', 'phoneNumber fullName')
       .populate('buyOrder')
       .populate('sellOrder')
@@ -101,8 +101,8 @@ export const payForOrder = catchAsync(async(req, res)=>{
   const userId = req.userId
 
   const matchedOrder = await MatchedOrder.findById(id);
-  if (!matchedOrder) {
-    return failure(res, 'matched order not found', 404)
+  if (!matchedOrder || matchedOrder.status !== 'deployed') {
+    return failure(res, 'matched order not found or expired', 404)
   }
 
   if (matchedOrder.buyer.toString() !== userId.toString()) {

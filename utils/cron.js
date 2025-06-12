@@ -30,7 +30,8 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-cron.schedule('*/15 * * * *', catchAsync(async () => {
+cron.schedule('*/10 * * * *', catchAsync(async () => {
+  console.log('Cancelling unpaid orders...');
   const now = new Date();
   const today = now.toISOString().split('T')[0];
 

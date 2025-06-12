@@ -45,9 +45,9 @@ export const createSellOrder = catchAsync(async(req, res)=>{
             cryptoNetwork: network
         })
         
-        await user.save()
         await newCryptoSellOrder.save()
     }
+    await user.save()
 
     success(res, {}, 'new sell order created successfully', 201)
 })
