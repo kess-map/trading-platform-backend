@@ -72,7 +72,15 @@ export const cancelSellOrder = catchAsync(async(req, res)=>{
 
   sellOrder.status = 'cancelled'
 
+  const user = await User.findById(sellOrder.user)
+
+  if(!user) return failure(res, 'User Order not found', 404)
+
+  user.availableBalance += sellOrder.amount
+  
   await sellOrder.save()
+
+  await user.save()
 
   success(res, {}, 'Sell Order canceled successfully')
 })
