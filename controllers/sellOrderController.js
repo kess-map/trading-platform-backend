@@ -66,7 +66,7 @@ export const cancelSellOrder = catchAsync(async(req, res)=>{
 
   const sellOrder = await SellOrder.findById(id)
 
-  if(!sellOrder) return failure(res, 'Sell Order not found', 404)
+  if(!sellOrder || sellOrder.status !== 'pending') return failure(res, 'Sell Order not found or already processed', 404)
 
   if(sellOrder.user.toString() !== userId.toString()) return failure(res, 'You can only update sell orders created by you') 
 
