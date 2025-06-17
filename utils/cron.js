@@ -30,8 +30,7 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-cron.schedule('*/10 * * * *', catchAsync(async () => {
-  console.log('Cancelling unpaid orders...');
+cron.schedule('*/5 * * * *', catchAsync(async () => {
   const now = new Date();
   const today = now.toISOString().split('T')[0];
 
@@ -42,9 +41,9 @@ cron.schedule('*/10 * * * *', catchAsync(async () => {
     const sessionStart = new Date(`${today}T${session.startTime}:00`);
     const sessionExpiry = new Date(sessionStart.getTime() + SESSION_DURATION_HOURS * 60 * 60 * 1000);
 
-    const diffInMinutes = Math.abs((now.getTime() - sessionExpiry.getTime()) / (1000 * 60));
+    const diffInMinutes = (now - sessionExpiry) / (1000 * 60);
 
-    if (diffInMinutes <= 7.5) {
+    if (diffInMinutes >= 0 && diffInMinutes <= 8) {
       const matchedOrders = await MatchedOrder.find({
         status: 'deployed',
         paymentStatus: 'pending'
