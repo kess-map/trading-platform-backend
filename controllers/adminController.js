@@ -748,3 +748,41 @@ export const deleteLiveSession = catchAsync(async (req, res) => {
     await LiveSession.findByIdAndDelete(id);
     return success(res, null, 'Live session deleted successfully');
 })
+
+export const getUserBuyRecords = catchAsync(async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const orders = await BuyOrder.find({ user: req.params.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await BuyOrder.countDocuments({ user: req.params.id });
+    res.json({
+      data: {
+        orders,
+        totalPages: Math.ceil(total / limit) > 1 ? Math.ceil(total / limit) : 1,
+      }
+    });
+})
+
+export const getUserSellRecords = catchAsync(async (req, res) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const orders = await SellOrder.find({ user: req.params.id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await SellOrder.countDocuments({ user: req.params.id });
+    res.json({
+      data: {
+        orders,
+        totalPages: Math.ceil(total / limit) > 1 ? Math.ceil(total / limit) : 1,
+      }
+    });
+})

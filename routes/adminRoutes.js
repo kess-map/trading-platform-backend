@@ -1,5 +1,5 @@
 import express from "express";
-import { creditUserBalance, getLiveSessions, deployMatchedOrders, getAllApprovedBuyOrders, getAllBuyOrders, getAllIdVerificationRequests, getAllInvestments, getAllProfileRequests, getAllSellOrders, getAllUsers, getBuyOrderById, getDashboardMetrics, getIdVerficationRequest, getMatchedOrders, getProfileEditRequest, getSellOrderById, getUserById, handleBuyOrderRequest, handleIdVerificationRequest, handleProfileEditRequest, handleSellOrderRequest, login, logout, matchBuyersToSeller, suspendUser, updateUserRole, createLiveSession, deleteLiveSession, checkAuth } from "../controllers/adminController.js";
+import { creditUserBalance, getLiveSessions, deployMatchedOrders, getAllApprovedBuyOrders, getAllBuyOrders, getAllIdVerificationRequests, getAllInvestments, getAllProfileRequests, getAllSellOrders, getAllUsers, getBuyOrderById, getDashboardMetrics, getIdVerficationRequest, getMatchedOrders, getProfileEditRequest, getSellOrderById, getUserById, handleBuyOrderRequest, handleIdVerificationRequest, handleProfileEditRequest, handleSellOrderRequest, login, logout, matchBuyersToSeller, suspendUser, updateUserRole, createLiveSession, deleteLiveSession, checkAuth, getUserBuyRecords, getUserSellRecords } from "../controllers/adminController.js";
 import {verifyToken} from '../middleware/verifyToken.js'
 import {isAdmin} from '../middleware/isAdmin.js'
 import { isSuperAdmin } from "../middleware/isSuperAdmin.js";
@@ -63,6 +63,10 @@ router.post('/livesessions/create', verifyToken, isAdmin, createLiveSession)
 router.delete('/livesessions/:id', verifyToken, isAdmin, deleteLiveSession)
 
 router.post('/logout', verifyToken, isAdmin, logout)
+
+router.get('/user/:id/buy-orders', verifyToken, isAdmin, getUserBuyRecords)
+
+router.get('/user/:id/sell-orders', verifyToken, isAdmin, getUserSellRecords)
 
 
 export default router
